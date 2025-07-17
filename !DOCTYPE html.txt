@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviation Audit Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.all {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .filter-btn.sat {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .filter-btn.unsat {
+            background: linear-gradient(135deg, #fc4a1a, #f7b733);
+            color: white;
+        }
+
+        .filter-btn.uploaded {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .audit-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .audit-item {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .audit-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .audit-item.sat {
+            border-color: #d4edda;
+            background: #f8fff9;
+        }
+
+        .audit-item.unsat {
+            border-color: #f8d7da;
+            background: #fffbfb;
+        }
+
+        .audit-item.uploaded {
+            border-color: #d1ecf1;
+            background: #f7fcfd;
+        }
+
+        .audit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .audit-number {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .status-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .status-badge::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .status-badge.open::after {
+            transform: rotate(180deg);
+        }
+
+        .status-badge.sat {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.unsat {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 100;
+            min-width: 120px;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .status-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .status-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-option:hover {
+            background: #f8f9fa;
+        }
+
+        .status-option.sat {
+            color: #155724;
+        }
+
+        .status-option.unsat {
+            color: #721c24;
+        }
+
+        .status-option.current {
+            background: #e9ecef;
+            font-weight: 700;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-indicator.sat {
+            background: #28a745;
+        }
+
+        .status-indicator.unsat {
+            background: #dc3545;
+        }
+
+        .audit-title {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9em;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .task-list {
+            margin-top: 15px;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 3px solid #6c757d;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #dc3545;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-top: 5px;
+            flex-shrink: 0;
+            background: white;
+        }
+
+        .task-checkbox:hover {
+            border-color: #c82333;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .task-checkbox.checked {
+            background: white;
+            border-color: #dc3545;
+        }
+
+        .task-checkbox.checked::after {
+            content: '✓';
+            color: #dc3545;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-location {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .task-description {
+            color: #6c757d;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .task-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .task-item:hover .task-actions {
+            opacity: 1;
+        }
+
+        .delete-task-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .delete-task-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        .add-task-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .add-task-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .upload-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .upload-toggle:hover {
+            background: #e9ecef;
+        }
+
+        .upload-checkbox {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #17a2b8;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .upload-checkbox.checked {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .upload-checkbox.checked::after {
+            content: '✓';
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .upload-label {
+            font-size: 0.9em;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .status-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #dc3545;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+        }
+
+        .no-results h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: unset;
+            }
+
+            .filter-buttons {
+                justify-content: center;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .audit-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Aviation Audit Management System</h1>
+            <p>ระบบจัดการการตรวจสอบด้านความปลอดภัยการบิน</p>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="ค้นหา audit items...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn all" onclick="filterItems('all')">ทั้งหมด</button>
+                <button class="filter-btn sat" onclick="filterItems('sat')">SAT</button>
+                <button class="filter-btn unsat" onclick="filterItems('unsat')">UNSAT</button>
+                <button class="filter-btn uploaded" onclick="filterItems('uploaded')">Uploaded</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #28a745;" id="satCount">0</div>
+                    <div class="stat-label">SAT Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #dc3545;" id="unsatCount">0</div>
+                    <div class="stat-label">UNSAT Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #17a2b8;" id="uploadedCount">0</div>
+                    <div class="stat-label">Uploaded Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #667eea;" id="totalCount">0</div>
+                    <div class="stat-label">ความคืบหน้า</div>
+                </div>
+            </div>
+
+            <div class="audit-grid" id="auditGrid">
+                <!-- จะแสดง audit items ที่นี่ -->
+            </div>
+
+            <div class="no-results hidden" id="noResults">
+                <h3>ไม่พบ audit items</h3>
+                <p>ลองปรับเกณฑ์การค้นหาหรือตัวกรองใหม่</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับเพิ่ม Task -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">เพิ่ม Task ใหม่</div>
+                <span class="close" onclick="closeAddTaskModal()">&times;</span>
+            </div>
+            <form id="addTaskForm">
+                <div class="form-group">
+                    <label class="form-label">สถานที่/หน่วยงาน:</label>
+                    <input type="text" id="taskLocation" class="form-input" placeholder="เช่น สุวรรณภูมิ, พิษณุโลก" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">รายละเอียดงาน:</label>
+                    <textarea id="taskDescription" class="form-input form-textarea" placeholder="อธิบายรายละเอียดของงานที่ต้องทำ..." required></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeAddTaskModal()">ยกเลิก</button>
+                    <button type="submit" class="btn-primary">เพิ่ม Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ข้อมูล audit
+        const auditData = [
+            {
+                id: "8.137",
+                title: "PCN >> PCR",
+                status: "sat",
+                uploaded: true,
+                tasks: [
+                    {
+                        id: "8.137-1",
+                        location: "RQ CAAT No. 37",
+                        description: "Highlight ทุกข้อที่เกี่ยวกับ ACN-PCN/ACR-PCR",
+                        completed: true
+                    },
+                    {
+                        id: "8.137-2",
+                        location: "Checklist",
+                        description: "เพิ่มChecklist PCR",
+                        completed: false
+                    },
+                    {
+                        id: "8.137-3",
+                        location: "สุวรรณภูมิ",
+                        description: "ไฟล์ 2. PQ 8.137_PHC VTBS Completed Checklist - ตัดเฉพาะส่วนที่เกี่ยวข้องกับ PCN + แปลเนื้อหา",
+                        completed: true
+                    },
+                    {
+                        id: "8.137-4",
+                        location: "กระบี่",
+                        description: "เพิ่ม checklist ตรวจ Special Propose Audit โดยให้ใส่เนื้อหา PCR ลงไปใน Checklist ด้วย",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.143",
+                title: "Inspection of movement area",
+                status: "sat",
+                uploaded: true,
+                tasks: [
+                    {
+                        id: "8.143-1",
+                        location: "พิษณุโลก",
+                        description: "เพิ่มไฟล์ SOP การตรวจพินิจ+ highlight เนื้อหา รอบการตรวจ + แปล",
+                        completed: true
+                    },
+                    {
+                        id: "8.143-2",
+                        location: "General",
+                        description: "เพิ่มตัวอย่างสนามบินอื่นๆ เช่น สุวรรณภูมิ ดอนเมือง",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.144",
+                title: "GRF competency",
+                status: "unsat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.144-1",
+                        location: "Issue",
+                        description: "คุณสิงคโปร์ให้ unsat เนื่องจากสุวรรณภูมิ, กระบี่ ไม่ได้ตรวจ",
+                        completed: false
+                    },
+                    {
+                        id: "8.144-2",
+                        location: "พิษณุโลก",
+                        description: "ไฟล์ 6. PQ 8.144 PHC Closing Action RCR evidence - แปลเนื้อหาหน้า 4 และ 5",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.145",
+                title: "GRF Procedure",
+                status: "unsat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.145-1",
+                        location: "Issue",
+                        description: "คุณสิงคโปร์ให้ unsat เนื่องจากสุวรรณภูมิ, กระบี่ ไม่ได้ตรวจ",
+                        completed: false
+                    },
+                    {
+                        id: "8.145-2",
+                        location: "Additional",
+                        description: "อาจเพิ่มเนื้อหาตอนตรวจ sur ของสุวรรณภูมิที่ใช้ checklist ใหม่ และอัพโหลดหลักฐานการตรวจเพิ่มเติม",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.147",
+                title: "Slippery Wet",
+                status: "sat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.147-1",
+                        location: "Note",
+                        description: "ที่ข้อนี้ SAT เพราะเป็น CE 7",
+                        completed: true
+                    },
+                    {
+                        id: "8.147-2",
+                        location: "RQ CAAT No. 37",
+                        description: "แปลเนื้อหา ข้อ 80-81, 1070-1071 เพิ่มเนื้อหาตารางที่ 6 แปล",
+                        completed: false
+                    },
+                    {
+                        id: "8.147-3",
+                        location: "สนามบินสุวรรณภูมิ",
+                        description: "เพิ่ม checklist ตอน surveillance, เพิ่มเนื้อหาใน SOP GRF เรื่องการออกประกาศ may slippery when wet + แปล",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.163",
+                title: "RESA",
+                status: "sat",
+                uploaded: true,
+                tasks: [
+                    {
+                        id: "8.163-1",
+                        location: "General",
+                        description: "เพิ่มตัวอย่างสนามบินอื่นๆ เช่น ดอนเมือง สุวรรณภูมิ",
+                        completed: true
+                    },
+                    {
+                        id: "8.163-2",
+                        location: "Verification",
+                        description: "ตรวจสอบสนามบินที่ได้รับใบรับรองการดำเนินงานสนามบินสาธารณะ ว่ามี RESA ตามมาตรฐานหรือไม่",
+                        completed: true
+                    }
+                ]
+            },
+            {
+                id: "8.171",
+                title: "Management of change",
+                status: "unsat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.171-1",
+                        location: "Issue",
+                        description: "คุณสิงคโปร์มีประเด็นใน CE 2 เนื่องจากข้อ 12 ระบุว่า การจัดการการเปลี่ยนแปลง",
+                        completed: false
+                    },
+                    {
+                        id: "8.171-2",
+                        location: "Examples",
+                        description: "เพิ่มตัวอย่างสนามบินดอนเมือง สุวรรณภูมิ เชียงใหม่ โดยเรียงเนื้อหาเป็น 1. Used Checklist SMS Manual 2. SMS Manual 3. Checklist Surveillance (PSOE) 4. Implementation Evidence",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.183",
+                title: "Suitable Fencing",
+                status: "sat",
+                uploaded: true,
+                tasks: [
+                    {
+                        id: "8.183-1",
+                        location: "สุวรรณภูมิ",
+                        description: "เพิ่ม Evidence ของ สุวรรณภูมิ เช่น แผนผังแนวรั้ว, แผนผังจุดเข้า-ออก, รายละเอียดการติดไฟส่องสว่าง, ASP ที่เห็นชอบแล้ว",
+                        completed: true
+                    },
+                    {
+                        id: "8.183-2",
+                        location: "หัวหิน",
+                        description: "หัวหินให้ทำไฟล์เพิ่มอีกไฟล์นึงโดยในไฟล์แบ่งเป็น Checklist เรื่องตัดผ่านทางสาธารณะ, หลักฐานการประสานงานกับ SFD",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.191",
+                title: "Object on Strip & RESA",
+                status: "sat",
+                uploaded: true,
+                tasks: [
+                    {
+                        id: "8.191-1",
+                        location: "สุวรรณภูมิ",
+                        description: "เพิ่ม Checklist ข้อ 1056 ใน initial cert. สุวรรณภูมิ",
+                        completed: true
+                    },
+                    {
+                        id: "8.191-2",
+                        location: "Evidence",
+                        description: "เพิ่ม Evidence ที่ได้จากการเก็บข้อมูลตอน sur, เพิ่มตัวอย่างสนามบินอื่น เช่น บุรีรัมย์",
+                        completed: true
+                    }
+                ]
+            },
+            {
+                id: "8.251",
+                title: "Maintenance programme",
+                status: "unsat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.251-1",
+                        location: "Issue",
+                        description: "CE 5 ไม่มีการตรวจ human factor",
+                        completed: false
+                    },
+                    {
+                        id: "8.251-2",
+                        location: "Recommendations",
+                        description: "ข้อแนะนำจากคุณสิงคโปร์เกี่ยวกับการตรวจตามหลักมนุษยปัจจัย: 1. ระบุข้อความการดำเนินการภายใต้คู่มือ 2. การประเมินความเหมาะสมของบุคคลากร 3. ความเหมาะสมของจำนวนบุคคลากร 4. Suitable Rest Period",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.253",
+                title: "Surface irregularity",
+                status: "sat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.253-1",
+                        location: "สนามบินหาดใหญ่",
+                        description: "Maintenance Programme ของสนามบินหาดใหญ่, เอกสารผลการศึกษา BBI IRI จากที่ปรึกษา",
+                        completed: true
+                    },
+                    {
+                        id: "8.253-2",
+                        location: "สนามบินสุวรรณภูมิ",
+                        description: "เพิ่ม Checklist Cert or Sur, SOP ตรวจพินิจพื้นผิวจราจร, Used Checklist pavement inspection",
+                        completed: false
+                    },
+                    {
+                        id: "8.253-3",
+                        location: "สนามบินเชียงใหม่",
+                        description: "ตัดเนื้อหา Maintenance programme เฉพาะเรื่อง Surface irregularity, แปล SOP Pavement Evaluation",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.259",
+                title: "VAN",
+                status: "unsat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.259-1",
+                        location: "Status",
+                        description: "VAN unsat - requires attention",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.273",
+                title: "Object strip",
+                status: "sat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.273-1",
+                        location: "สุวรรณภูมิ",
+                        description: "เพิ่มหลักฐาน สุวรรณภูมิ",
+                        completed: false
+                    },
+                    {
+                        id: "8.273-2",
+                        location: "บุรีรัมย์",
+                        description: "เพิ่มหลักฐาน finding บุรีรัมย์ ใช้ชุดหลักฐานเดียวกับ 8.191",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.277",
+                title: "OLS public",
+                status: "unsat",
+                uploaded: true,
+                tasks: [
+                    {
+                        id: "8.277-1",
+                        location: "CE 5",
+                        description: "ตรวจ OLS ในช่วงการขอออกประกาศเขตปลอดภัยในการเดินอากาศ",
+                        completed: false
+                    },
+                    {
+                        id: "8.277-2",
+                        location: "Evidence",
+                        description: "เพิ่มหลักฐานการตรวจพินิจสิ่งกีดขวาง ภายในและภายนอกสนามบิน, เพิ่มหลักฐานการออกประกาศ NOTAM",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.279",
+                title: "Object in approach surface",
+                status: "sat",
+                uploaded: true,
+                tasks: [
+                    {
+                        id: "8.279-1",
+                        location: "Documentation",
+                        description: "แปล RQ CAAT, แปล Checklist, เพิ่มหลักฐานการกำหนดวงรอบการทำ flight check",
+                        completed: true
+                    },
+                    {
+                        id: "8.279-2",
+                        location: "Flight Check",
+                        description: "flight check report ตามวงรอบที่กำหนดทั้ง 2 รูปแบบ: flight check report PAPI, flight check report ILS",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.323",
+                title: "Removal contaminate",
+                status: "unsat",
+                uploaded: true,
+                tasks: [
+                    {
+                        id: "8.323-1",
+                        location: "CE 2",
+                        description: "ขาด RP 10.3.4",
+                        completed: false
+                    },
+                    {
+                        id: "8.323-2",
+                        location: "Evidence",
+                        description: "upload ตัวอย่าง Checklist เพิ่มเติมของสุวรรณภูมิ, เพิ่มตัวอย่าง finding ของพิษณุโลก, เพิ่มตัวอย่าง TOR การกวาดดูดของสุวรรณภูมิ",
+                        completed: false
+                    }
+                ]
+            },
+            {
+                id: "8.283",
+                title: "150 m above ground level",
+                status: "sat",
+                uploaded: false,
+                tasks: [
+                    {
+                        id: "8.283-1",
+                        location: "Issue",
+                        description: "unsat เนื่องจากการประสานงานดังกล่าวควรปฏิบัติโดย authorise person",
+                        completed: false
+                    },
+                    {
+                        id: "8.283-2",
+                        location: "Action",
+                        description: "เพิ่มหลักฐานการประสานงานกับหน่วยงานท้องถิ่นถึงสิ่งก่อสร้างที่มีความสูง 150 เมตร, เพิ่มหลักฐานการตอบกลับจากหน่วยงานท้องถิ่น",
+                        completed: false
+                    }
+                ]
+            }
+        ];
+
+        let filteredData = [...auditData];
+        let currentFilter = 'all';
+        let currentAuditId = null;
+
+        // เริ่มต้นแอปพลิเคชัน
+        function init() {
+            console.log('เริ่มต้นแอปพลิเคชัน');
+            console.log('ข้อมูล audit:', auditData);
+            renderAuditItems();
+            updateStats();
+            setupEventListeners();
+        }
+
+        // ตั้งค่า event listeners
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', handleSearch);
+            }
+        }
+
+        // จัดการการค้นหา
+        function handleSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredData = auditData.filter(item => 
+                item.id.toLowerCase().includes(searchTerm) ||
+                item.title.toLowerCase().includes(searchTerm) ||
+                item.tasks.some(task => 
+                    task.location.toLowerCase().includes(searchTerm) ||
+                    task.description.toLowerCase().includes(searchTerm)
+                )
+            );
+            
+            if (currentFilter !== 'all') {
+                applyStatusFilter(currentFilter);
+            }
+            
+            renderAuditItems();
+        }
+
+        // กรองรายการตามสถานะ
+        function filterItems(status) {
+            currentFilter = status;
+            
+            // อัพเดทสถานะปุ่ม
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.style.opacity = '0.7';
+            });
+            
+            const activeBtn = document.querySelector(`.filter-btn.${status}`);
+            if (activeBtn) {
+                activeBtn.style.opacity = '1';
+            }
+            
+            if (status === 'all') {
+                filteredData = [...auditData];
+            } else {
+                applyStatusFilter(status);
+            }
+            
+            renderAuditItems();
+        }
+
+        // ใช้ตัวกรองสถานะ
+        function applyStatusFilter(status) {
+            if (status === 'uploaded') {
+                filteredData = filteredData.filter(item => item.uploaded);
+            } else {
+                filteredData = filteredData.filter(item => item.status === status);
+            }
+        }
+
+        // แสดงรายการ audit
+        function renderAuditItems() {
+            console.log('กำลังแสดงรายการ:', filteredData.length, 'รายการ');
+            
+            const grid = document.getElementById('auditGrid');
+            const noResults = document.getElementById('noResults');
+            
+            if (!grid) {
+                console.error('ไม่พบ element auditGrid');
+                return;
+            }
+            
+            if (filteredData.length === 0) {
+                grid.innerHTML = '';
+                if (noResults) {
+                    noResults.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            if (noResults) {
+                noResults.classList.add('hidden');
+            }
+            
+            grid.innerHTML = filteredData.map(item => {
+                console.log('กำลังแสดง item:', item.id, 'มี tasks:', item.tasks ? item.tasks.length : 0);
+                
+                const progressPercent = calculateProgress(item.tasks);
+                const completedTasks = getCompletedTasks(item.tasks);
+                
+                return `
+                    <div class="audit-item ${item.status}" data-id="${item.id}">
+                        <div class="audit-header">
+                            <div class="audit-number">${item.id}</div>
+                            <div class="status-dropdown">
+                                <div class="status-badge ${item.status}" onclick="toggleStatusMenu('${item.id}')">
+                                    <span class="status-indicator ${item.status}"></span>
+                                    ${item.status.toUpperCase()}
+                                </div>
+                                <div class="status-menu" id="statusMenu-${item.id}">
+                                    <div class="status-option sat ${item.status === 'sat' ? 'current' : ''}" 
+                                         onclick="changeStatus('${item.id}', 'sat')">
+                                        <span class="status-indicator sat"></span>
+                                        SAT
+                                    </div>
+                                    <div class="status-option unsat ${item.status === 'unsat' ? 'current' : ''}" 
+                                         onclick="changeStatus('${item.id}', 'unsat')">
+                                        <span class="status-indicator unsat"></span>
+                                        UNSAT
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="audit-title">${item.title}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="progress-text">${completedTasks} จาก ${item.tasks.length} งานเสร็จแล้ว</div>
+                        <div class="task-list">
+                            ${item.tasks.map(task => `
+                                <div class="task-item">
+                                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" 
+                                         onclick="toggleTask('${task.id}')" title="คลิกเพื่อเปลี่ยนสถานะ"></div>
+                                    <div class="task-content">
+                                        <div class="task-location">${task.location}</div>
+                                        <div class="task-description">${task.description}</div>
+                                    </div>
+                                    <div class="task-actions">
+                                        <button class="delete-task-btn" onclick="deleteTask('${task.id}')" title="ลบ task">×</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <button class="add-task-btn" onclick="openAddTaskModal('${item.id}')">
+                                + เพิ่ม Task ใหม่
+                            </button>
+                        </div>
+                        <div class="status-actions">
+                            <div class="upload-toggle" onclick="toggleUploadStatus('${item.id}')">
+                                <div class="upload-checkbox ${item.uploaded ? 'checked' : ''}"></div>
+                                <span class="upload-label">Uploaded</span>
+                            </div>
+                            <div style="font-size: 0.85em; color: #6c757d;">
+                                สถานะ: ${item.status.toUpperCase()} ${item.uploaded ? '• อัปโหลดแล้ว' : '• ยังไม่อัปโหลด'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            console.log('แสดงรายการเสร็จแล้ว');
+        }
+
+        // สลับสถานะ task
+        function toggleTask(taskId) {
+            console.log('สลับสถานะ task:', taskId);
+            
+            const [auditId] = taskId.split('-');
+            const audit = auditData.find(item => item.id === auditId);
+            
+            if (!audit) {
+                console.error('ไม่พบ audit:', auditId);
+                return;
+            }
+            
+            const task = audit.tasks.find(t => t.id === taskId);
+            
+            if (!task) {
+                console.error('ไม่พบ task:', taskId);
+                return;
+            }
+            
+            task.completed = !task.completed;
+            console.log('เปลี่ยนสถานะ task เป็น:', task.completed);
+            
+            renderAuditItems();
+            updateStats();
+            saveProgress();
+        }
+
+        // เปลี่ยนสถานะ SAT/UNSAT
+        function changeStatus(auditId, newStatus) {
+            const audit = auditData.find(item => item.id === auditId);
+            if (!audit) {
+                console.error('ไม่พบ audit:', auditId);
+                return;
+            }
+
+            const oldStatus = audit.status;
+            audit.status = newStatus;
+            
+            console.log(`เปลี่ยนสถานะ ${auditId} จาก ${oldStatus} เป็น ${newStatus}`);
+            
+            closeAllStatusMenus();
+            renderAuditItems();
+            updateStats();
+            saveProgress();
+        }
+
+        // สลับสถานะ Upload
+        function toggleUploadStatus(auditId) {
+            const audit = auditData.find(item => item.id === auditId);
+            if (!audit) {
+                console.error('ไม่พบ audit:', auditId);
+                return;
+            }
+
+            audit.uploaded = !audit.uploaded;
+            
+            console.log(`เปลี่ยนสถานะ upload ${auditId} เป็น ${audit.uploaded ? 'อัปโหลดแล้ว' : 'ยังไม่อัปโหลด'}`);
+            
+            renderAuditItems();
+            updateStats();
+            saveProgress();
+        }
+
+        // เปิด/ปิด status menu
+        function toggleStatusMenu(auditId) {
+            closeAllStatusMenus();
+            
+            const menu = document.getElementById(`statusMenu-${auditId}`);
+            const badge = document.querySelector(`[data-id="${auditId}"] .status-badge`);
+            
+            if (menu && badge) {
+                menu.classList.add('show');
+                badge.classList.add('open');
+                
+                setTimeout(() => {
+                    document.addEventListener('click', function closeMenuOnClick(e) {
+                        if (!menu.contains(e.target) && !badge.contains(e.target)) {
+                            menu.classList.remove('show');
+                            badge.classList.remove('open');
+                            document.removeEventListener('click', closeMenuOnClick);
+                        }
+                    });
+                }, 10);
+            }
+        }
+
+        // ปิด status menu ทั้งหมด
+        function closeAllStatusMenus() {
+            document.querySelectorAll('.status-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            document.querySelectorAll('.status-badge').forEach(badge => {
+                badge.classList.remove('open');
+            });
+        }
+
+        // เปิด Modal สำหรับเพิ่ม Task
+        function openAddTaskModal(auditId) {
+            currentAuditId = auditId;
+            const modal = document.getElementById('addTaskModal');
+            const audit = auditData.find(item => item.id === auditId);
+            
+            if (modal && audit) {
+                document.querySelector('.modal-title').textContent = `เพิ่ม Task ใหม่ - ${audit.id}: ${audit.title}`;
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                
+                setTimeout(() => {
+                    document.getElementById('taskLocation').focus();
+                }, 100);
+            }
+        }
+
+        // ปิด Modal
+        function closeAddTaskModal() {
+            const modal = document.getElementById('addTaskModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                
+                document.getElementById('addTaskForm').reset();
+                currentAuditId = null;
+            }
+        }
+
+        // เพิ่ม Task ใหม่
+        function addNewTask(auditId, location, description) {
+            const audit = auditData.find(item => item.id === auditId);
+            if (!audit) {
+                console.error('ไม่พบ audit:', auditId);
+                return false;
+            }
+
+            const existingTaskNumbers = audit.tasks.map(task => {
+                const parts = task.id.split('-');
+                return parseInt(parts[1]) || 0;
+            });
+            const newTaskNumber = Math.max(...existingTaskNumbers, 0) + 1;
+            const newTaskId = `${auditId}-${newTaskNumber}`;
+
+            const newTask = {
+                id: newTaskId,
+                location: location.trim(),
+                description: description.trim(),
+                completed: false
+            };
+
+            audit.tasks.push(newTask);
+            
+            console.log('เพิ่ม task ใหม่:', newTask);
+            
+            renderAuditItems();
+            updateStats();
+            saveProgress();
+            
+            return true;
+        }
+
+        // ลบ Task
+        function deleteTask(taskId) {
+            if (!confirm('คุณแน่ใจหรือไม่ที่จะลบ task นี้?')) {
+                return;
+            }
+
+            const [auditId] = taskId.split('-');
+            const audit = auditData.find(item => item.id === auditId);
+            
+            if (!audit) {
+                console.error('ไม่พบ audit:', auditId);
+                return;
+            }
+
+            const taskIndex = audit.tasks.findIndex(task => task.id === taskId);
+            
+            if (taskIndex === -1) {
+                console.error('ไม่พบ task:', taskId);
+                return;
+            }
+
+            audit.tasks.splice(taskIndex, 1);
+            
+            console.log('ลบ task:', taskId);
+            
+            renderAuditItems();
+            updateStats();
+            saveProgress();
+        }
+
+        // คำนวณความคืบหน้า
+        function calculateProgress(tasks) {
+            if (!tasks || tasks.length === 0) return 0;
+            const completedTasks = tasks.filter(task => task.completed).length;
+            return Math.round((completedTasks / tasks.length) * 100);
+        }
+
+        // นับงานที่เสร็จแล้ว
+        function getCompletedTasks(tasks) {
+            if (!tasks || tasks.length === 0) return 0;
+            return tasks.filter(task => task.completed).length;
+        }
+
+        // อัพเดทสถิติ
+        function updateStats() {
+            const satItems = auditData.filter(item => item.status === 'sat');
+            const unsatItems = auditData.filter(item => item.status === 'unsat');
+            const uploadedItems = auditData.filter(item => item.uploaded);
+            
+            const totalTasks = auditData.reduce((sum, item) => sum + item.tasks.length, 0);
+            const completedTasks = auditData.reduce((sum, item) => 
+                sum + item.tasks.filter(task => task.completed).length, 0);
+            
+            const satCount = document.getElementById('satCount');
+            const unsatCount = document.getElementById('unsatCount');
+            const uploadedCount = document.getElementById('uploadedCount');
+            const totalCount = document.getElementById('totalCount');
+            
+            if (satCount) satCount.textContent = satItems.length;
+            if (unsatCount) unsatCount.textContent = unsatItems.length;
+            if (uploadedCount) uploadedCount.textContent = uploadedItems.length;
+            if (totalCount) {
+                const percentage = totalTasks > 0 ? Math.round((completedTasks/totalTasks)*100) : 0;
+                totalCount.textContent = `${percentage}%`;
+            }
+        }
+
+        // บันทึกความคืบหน้า
+        function saveProgress() {
+            try {
+                const progressData = {};
+                auditData.forEach(audit => {
+                    progressData[audit.id] = {};
+                    audit.tasks.forEach(task => {
+                        progressData[audit.id][task.id] = task.completed;
+                    });
+                });
+                localStorage.setItem('auditProgress', JSON.stringify(progressData));
+                console.log('บันทึกความคืบหน้าแล้ว');
+            } catch (error) {
+                console.error('ไม่สามารถบันทึกความคืบหน้าได้:', error);
+            }
+        }
+
+        // โหลดความคืบหน้า
+        function loadProgress() {
+            try {
+                const savedProgress = localStorage.getItem('auditProgress');
+                if (savedProgress) {
+                    const progressData = JSON.parse(savedProgress);
+                    auditData.forEach(audit => {
+                        if (progressData[audit.id]) {
+                            audit.tasks.forEach(task => {
+                                if (progressData[audit.id][task.id] !== undefined) {
+                                    task.completed = progressData[audit.id][task.id];
+                                }
+                            });
+                        }
+                    });
+                    console.log('โหลดความคืบหน้าแล้ว');
+                }
+            } catch (error) {
+                console.error('ไม่สามารถโหลดความคืบหน้าได้:', error);
+                localStorage.removeItem('auditProgress');
+            }
+        }
+
+        // เริ่มต้นเมื่อหน้าโหลดเสร็จ
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM โหลดเสร็จแล้ว');
+            loadProgress();
+            init();
+            setupModalEventListeners();
+        });
+
+        // ตั้งค่า event listeners สำหรับ modal
+        function setupModalEventListeners() {
+            window.onclick = function(event) {
+                const modal = document.getElementById('addTaskModal');
+                if (event.target === modal) {
+                    closeAddTaskModal();
+                }
+            };
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeAddTaskModal();
+                    closeAllStatusMenus();
+                }
+            });
+
+            const addTaskForm = document.getElementById('addTaskForm');
+            if (addTaskForm) {
+                addTaskForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    
+                    const location = document.getElementById('taskLocation').value;
+                    const description = document.getElementById('taskDescription').value;
+                    
+                    if (!location.trim() || !description.trim()) {
+                        alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                        return;
+                    }
+                    
+                    if (currentAuditId && addNewTask(currentAuditId, location, description)) {
+                        closeAddTaskModal();
+                        
+                        const audit = auditData.find(item => item.id === currentAuditId);
+                        if (audit) {
+                            console.log(`เพิ่ม task ใหม่ใน ${audit.id} สำเร็จ!`);
+                        }
+                    }
+                });
+            }
+        }
+
+        // API สำหรับ developers
+        window.auditAPI = {
+            getData: () => auditData,
+            getFilteredData: () => filteredData,
+            toggleTask: toggleTask,
+            saveProgress: saveProgress,
+            loadProgress: loadProgress,
+            renderItems: renderAuditItems,
+            addTask: addNewTask,
+            deleteTask: deleteTask,
+            openAddTaskModal: openAddTaskModal,
+            closeAddTaskModal: closeAddTaskModal,
+            changeStatus: changeStatus,
+            toggleUploadStatus: toggleUploadStatus,
+            toggleStatusMenu: toggleStatusMenu
+        };
+    </script>
+</body>
+</html>
